@@ -289,9 +289,7 @@ payout_status, payout_amount_usd, payment_sequence
 ---
 
 ## Data Flow Diagram
-
-## Data Flow Diagram
-
+```
 ┌─────────────────────────────────────────────────────────┐
 │                    RAW DATA (CSV)                       │
 │  • sample_claims.csv                                    │
@@ -330,7 +328,7 @@ payout_status, payout_amount_usd, payment_sequence
 │  • kpi_bottleneck_analysis                              │
 │  • kpi_friction_correlation                             │
 └─────────────────────────────────────────────────────────┘
-
+```
 **Data Dependencies:**
 - `int_claim_master` requires: `fact_claim`, `agg_logs`, `fact_claim_status`, `agg_payout`
 - `agg_logs` requires: `fact_claim_status`
