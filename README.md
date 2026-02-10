@@ -2,6 +2,7 @@
 
 **Document prepared with AI Assistance**
 
+**Sample Dashboard Link:** https://public.tableau.com/app/profile/swagata.dutta/viz/claims_analysis/summary_overall
 ## Executive Summary
 
 This document describes a PySpark-based data pipeline designed to transform raw insurance claims data into actionable analytics. The pipeline processes three primary data sources (claims, claim status logs, payouts) through a series of SQL transformations to produce KPI dashboards focused on operational efficiency, payment performance, and workflow bottleneck identification.
