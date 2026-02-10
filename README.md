@@ -62,6 +62,55 @@ sql_execution_order = [
 
 ---
 
+## Data Flow Diagram
+```
+┌─────────────────────────────────────────────────────────┐
+│                    RAW DATA (CSV)                       │
+│  • sample_claims.csv                                    │
+│  • sample_claim_logs.csv                                │
+│  • sample_claim_payouts.csv                             │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│              LAYER 1: FACT TABLES                       │
+│  • fact_claim (claim attributes + validation flags)     │
+│  • fact_claim_status (status transitions + sequencing)  │
+│  • fact_claim_payout (payment transactions)             │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│           LAYER 2: AGGREGATIONS                         │
+│  • agg_logs (operational metrics per claim)             │
+│  • agg_payout (payment metrics per claim)               │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│        LAYER 3: INTERMEDIATE MASTER                     │
+│  • int_claim_master (unified claim view with ops +      │
+│    finance metrics)                                     │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│            LAYER 4: KPI REPORTS                         │
+│  • kpi_summary_dashboard (executive metrics by vertical)│
+│  • kpi_step_timing                                      │
+│  • kpi_workflow_efficiency                              │
+│  • kpi_bottleneck_analysis                              │
+│  • kpi_friction_correlation                             │
+└─────────────────────────────────────────────────────────┘
+```
+**Data Dependencies:**
+- `int_claim_master` requires: `fact_claim`, `agg_logs`, `fact_claim_status`, `agg_payout`
+- `agg_logs` requires: `fact_claim_status`
+- `agg_payout` requires: `fact_claim_payout`
+- All KPI reports require: `int_claim_master`
+
+---
+
 ## Data Model & Transformations
 
 ### LAYER 1: Fact Tables (Enhanced Raw)
@@ -286,55 +335,6 @@ payout_status, payout_amount_usd, payment_sequence
 - Recursively deletes all files and subdirectories
 - Uses `os.walk(topdown=False)` for bottom-up traversal
 - Preserves parent directory structure
-
----
-
-## Data Flow Diagram
-```
-┌─────────────────────────────────────────────────────────┐
-│                    RAW DATA (CSV)                       │
-│  • sample_claims.csv                                    │
-│  • sample_claim_logs.csv                                │
-│  • sample_claim_payouts.csv                             │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│              LAYER 1: FACT TABLES                       │
-│  • fact_claim (claim attributes + validation flags)     │
-│  • fact_claim_status (status transitions + sequencing)  │
-│  • fact_claim_payout (payment transactions)             │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│           LAYER 2: AGGREGATIONS                         │
-│  • agg_logs (operational metrics per claim)             │
-│  • agg_payout (payment metrics per claim)               │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│        LAYER 3: INTERMEDIATE MASTER                     │
-│  • int_claim_master (unified claim view with ops +      │
-│    finance metrics)                                     │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│            LAYER 4: KPI REPORTS                         │
-│  • kpi_summary_dashboard (executive metrics by vertical)│
-│  • kpi_step_timing                                      │
-│  • kpi_workflow_efficiency                              │
-│  • kpi_bottleneck_analysis                              │
-│  • kpi_friction_correlation                             │
-└─────────────────────────────────────────────────────────┘
-```
-**Data Dependencies:**
-- `int_claim_master` requires: `fact_claim`, `agg_logs`, `fact_claim_status`, `agg_payout`
-- `agg_logs` requires: `fact_claim_status`
-- `agg_payout` requires: `fact_claim_payout`
-- All KPI reports require: `int_claim_master`
 
 ---
 
