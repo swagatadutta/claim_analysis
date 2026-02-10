@@ -32,10 +32,10 @@ The pipeline ingests three CSV files representing operational claims data:
 
 ## Pipeline Execution Flow
 
-The pipeline follows a **three-tier transformation pattern**: Raw → Fact → Aggregation → KPI.
+The pipeline follows a **three-tier transformation pattern**: Raw → Fact → Aggregation → Intermediate_Master → KPI.
 
 ### Execution Order (from `process_data.py`)
-
+```
 sql_execution_order = [
     # LAYER 1: ENHANCED RAW FACTS
     "fact_claim.sql",           # Core claim attributes + policy validation flags
@@ -56,7 +56,7 @@ sql_execution_order = [
     "kpi_friction_correlation.sql",
     "kpi_summary_dashboard.sql"
 ]
-
+```
 **Dependencies:** Each layer depends on the completion of the previous layer. The pipeline creates temporary Spark SQL views that are consumed by downstream queries.
 
 ---
