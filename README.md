@@ -1,6 +1,6 @@
 # Product Requirements Document: Claims Processing Analytics Pipeline 
 
-**Document generated with AI Assistance**
+**Document prepared with AI Assistance**
 
 ## Executive Summary
 
