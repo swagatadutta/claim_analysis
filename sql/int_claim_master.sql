@@ -1,7 +1,7 @@
 CREATE OR REPLACE TEMP VIEW int_claim_master AS
 SELECT 
-  fc.claim_id, fc.claim_reference, fc.quote_id, fc.insurance_vertical, fc.claim_type_category,
-  fc.reported_date, fc.loss_date, fc.policy_start_date, fc.policy_end_date,
+  fc.claim_id, fc.claim_reference, fc.quote_id, fc.insurance_vertical, claim_status, 
+  fc.claim_type_category,fc.reported_date, fc.loss_date, fc.policy_start_date, fc.policy_end_date,
   
   -- latest step
   fcs.status_category AS ops_latest_status_category, 
@@ -44,5 +44,3 @@ FROM fact_claim fc
 LEFT JOIN agg_logs al ON fc.claim_id = al.claim_id
 LEFT JOIN fact_claim_status fcs ON fc.claim_id = fcs.claim_id AND fcs.is_current_step = true
 LEFT JOIN agg_payout ap ON fc.claim_reference = ap.claim_reference;
-
---make ops tags and fin tags clear with prefixes, we can have biz tags which combines data for both ops and fin
