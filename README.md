@@ -32,7 +32,7 @@ The pipeline ingests three CSV files representing operational claims data:
 
 ## Pipeline Execution Flow
 
-The pipeline follows a **three-tier transformation pattern**: Raw → Fact → Aggregation → Intermediate_Master → KPI.
+The pipeline follows a **three-tier transformation pattern**: **Raw → Fact → Aggregation → Intermediate_Master → KPI.**
 
 ### Execution Order (from `process_data.py`)
 ```
