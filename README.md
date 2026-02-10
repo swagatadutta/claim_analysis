@@ -1,8 +1,9 @@
 # Product Requirements Document: Claims Processing Analytics Pipeline 
 
-**Document prepared with AI Assistance**
+***Document prepared with AI Assistance***
 
-**Sample Dashboard Link:** https://public.tableau.com/app/profile/swagata.dutta/viz/claims_analysis/summary_overall
+**Sample Tableau Dashboard:** https://public.tableau.com/app/profile/swagata.dutta/viz/claims_analysis/summary_overall
+
 ## Executive Summary
 
 This document describes a PySpark-based data pipeline designed to transform raw insurance claims data into actionable analytics. The pipeline processes three primary data sources (claims, claim status logs, payouts) through a series of SQL transformations to produce KPI dashboards focused on operational efficiency, payment performance, and workflow bottleneck identification.
@@ -33,7 +34,7 @@ The pipeline ingests three CSV files representing operational claims data:
 
 ## Pipeline Execution Flow
 
-The pipeline follows a **three-tier transformation pattern**: **Raw → Fact → Aggregation → Intermediate_Master → KPI.**
+The pipeline follows a **three-tier transformation pattern**: **Raw → Fact → Aggregation/Intermediate_Master → KPI.**
 
 ### Execution Order (from `process_data.py`)
 ```
@@ -59,55 +60,6 @@ sql_execution_order = [
 ]
 ```
 **Dependencies:** Each layer depends on the completion of the previous layer. The pipeline creates temporary Spark SQL views that are consumed by downstream queries.
-
----
-
-## Data Flow Diagram
-```
-┌─────────────────────────────────────────────────────────┐
-│                    RAW DATA (CSV)                       │
-│  • sample_claims.csv                                    │
-│  • sample_claim_logs.csv                                │
-│  • sample_claim_payouts.csv                             │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│              LAYER 1: FACT TABLES                       │
-│  • fact_claim (claim attributes + validation flags)     │
-│  • fact_claim_status (status transitions + sequencing)  │
-│  • fact_claim_payout (payment transactions)             │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│           LAYER 2: AGGREGATIONS                         │
-│  • agg_logs (operational metrics per claim)             │
-│  • agg_payout (payment metrics per claim)               │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│        LAYER 3: INTERMEDIATE MASTER                     │
-│  • int_claim_master (unified claim view with ops +      │
-│    finance metrics)                                     │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│            LAYER 4: KPI REPORTS                         │
-│  • kpi_summary_dashboard (executive metrics by vertical)│
-│  • kpi_step_timing                                      │
-│  • kpi_workflow_efficiency                              │
-│  • kpi_bottleneck_analysis                              │
-│  • kpi_friction_correlation                             │
-└─────────────────────────────────────────────────────────┘
-```
-**Data Dependencies:**
-- `int_claim_master` requires: `fact_claim`, `agg_logs`, `fact_claim_status`, `agg_payout`
-- `agg_logs` requires: `fact_claim_status`
-- `agg_payout` requires: `fact_claim_payout`
-- All KPI reports require: `int_claim_master`
 
 ---
 
@@ -185,9 +137,12 @@ payout_status, payout_amount_usd, payment_sequence
 |-----------|----------------|------------------|
 | `first_transition_ts` | Earliest status transition timestamp | Claim start time |
 | `last_transition_ts` | Latest status transition timestamp | Current workflow position |
+| `reached_approved_flag` | 1 if claim reached "approved" status | approve success rate |
+| `reached_approved_flag_first_ts` | First timestamp claim reached "approved" | Time to approve |
 | `reached_settled_flag` | 1 if claim reached "Settled" status | Settlement success rate |
 | `reached_settled_flag_first_ts` | First timestamp claim reached "Settled" | Time to settlement |
 | `reached_payment_complete_flag` | 1 if claim reached "Payment Complete" or "Paid" | Payment completion rate |
+| `reached_payment_complete_flag_first_ts` | first time claim reached "Payment Complete" or "Paid" | time to Payment completion |
 | `avg_days_between_steps` | Average days between consecutive status changes | Workflow velocity |
 | `total_steps_count` | Total number of status transitions | Workflow complexity |
 | `cnt_action_required_status` | Count of "Action Required" statuses | Customer friction indicator |
@@ -253,7 +208,7 @@ payout_status, payout_amount_usd, payment_sequence
 
 **Key Derived Metrics:**
 
-| **Metric** | **Formula** | **Business Use** |
+| **Metric** | **Definition** | **Business Use** |
 |-----------|-------------|------------------|
 | `ops_is_terminal_status` | Status in (closed, declined, settled, withdrawn, invalid, duplicate) | Identifies completed workflows |
 | `ops_time_to_latest_status` | Days from first to last transition | Total workflow duration |
@@ -338,6 +293,55 @@ payout_status, payout_amount_usd, payment_sequence
 
 ---
 
+## Data Flow Diagram
+```
+┌─────────────────────────────────────────────────────────┐
+│                    RAW DATA (CSV)                       │
+│  • sample_claims.csv                                    │
+│  • sample_claim_logs.csv                                │
+│  • sample_claim_payouts.csv                             │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│              LAYER 1: FACT TABLES                       │
+│  • fact_claim (claim attributes + validation flags)     │
+│  • fact_claim_status (status transitions + sequencing)  │
+│  • fact_claim_payout (payment transactions)             │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│           LAYER 2: AGGREGATIONS                         │
+│  • agg_logs (operational metrics per claim)             │
+│  • agg_payout (payment metrics per claim)               │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│        LAYER 3: INTERMEDIATE MASTER                     │
+│  • int_claim_master (unified claim view with ops +      │
+│    finance metrics)                                     │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│            LAYER 4: KPI REPORTS                         │
+│  • kpi_summary_dashboard (executive metrics by vertical)│
+│  • kpi_step_timing                                      │
+│  • kpi_workflow_efficiency                              │
+│  • kpi_bottleneck_analysis                              │
+│  • kpi_friction_correlation                             │
+└─────────────────────────────────────────────────────────┘
+```
+**Data Dependencies:**
+- `int_claim_master` requires: `fact_claim`, `agg_logs`, `fact_claim_status`, `agg_payout`
+- `agg_logs` requires: `fact_claim_status`
+- `agg_payout` requires: `fact_claim_payout`
+- All KPI reports require: `int_claim_master`
+
+---
+
 ## Key Business Logic
 
 ### Metric Calculations
@@ -384,13 +388,11 @@ Claims in these states require ongoing monitoring:
 
 ## Sample Identifiers (for Testing)
 
-**Sample Claim ID:**  
-`faa5f524f46ca8fad25181a5ab4afc1b5cae77c478f279aa92079367093bfa56`
+**Sample Claim ID:**  `faa5f524f46ca8fad25181a5ab4afc1b5cae77c478f279aa92079367093bfa56`
 
-**Sample Claim Reference:**  
-`fa5b517753e393c3fd72493d1587b8ca8de914206281a237946ad0c18fb8b4a9`
+**Sample Claim Reference:**  `fa5b517753e393c3fd72493d1587b8ca8de914206281a237946ad0c18fb8b4a9`
 
-These identifiers can be used for spot-checking transformations and debugging pipeline execution.
+**Use process_data_spotcheck.py for viewing each claim wise data**
 
 ---
 
