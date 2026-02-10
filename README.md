@@ -290,6 +290,8 @@ payout_status, payout_amount_usd, payment_sequence
 
 ## Data Flow Diagram
 
+## Data Flow Diagram
+
 ┌─────────────────────────────────────────────────────────┐
 │                    RAW DATA (CSV)                       │
 │  • sample_claims.csv                                    │
