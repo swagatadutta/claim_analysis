@@ -295,31 +295,31 @@ payout_status, payout_amount_usd, payment_sequence
 │  • sample_claims.csv                                    │
 │  • sample_claim_logs.csv                                │
 │  • sample_claim_payouts.csv                             │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-                   ▼
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │              LAYER 1: FACT TABLES                       │
 │  • fact_claim (claim attributes + validation flags)     │
 │  • fact_claim_status (status transitions + sequencing)  │
 │  • fact_claim_payout (payment transactions)             │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-                   ▼
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │           LAYER 2: AGGREGATIONS                         │
 │  • agg_logs (operational metrics per claim)             │
 │  • agg_payout (payment metrics per claim)               │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-                   ▼
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │        LAYER 3: INTERMEDIATE MASTER                     │
 │  • int_claim_master (unified claim view with ops +      │
 │    finance metrics)                                     │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-                   ▼
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │            LAYER 4: KPI REPORTS                         │
 │  • kpi_summary_dashboard (executive metrics by vertical)│
